@@ -1,5 +1,6 @@
 pragma solidity >=0.4.22 <0.8.0;
 contract Auction {
+    
     //Address of the person selling
     address public seller;
 
@@ -24,8 +25,12 @@ contract Auction {
     //Mapping of the balances of all the bidders
     mapping(address => uint256) public balanceBidders;
 
+    //Mapping of the balances of all the bidders
+    mapping(address => uint256) public amountBid;
+    
     //Constructor
     constructor (uint256 minPrice, uint256 numberOfBids) public {
+        
         //Set reserve price
         reservePrice = minPrice;
 
@@ -41,29 +46,56 @@ contract Auction {
         bidCheck[seller] = true;
     }
 
+    //Function that accounts use to make bids
     function Bid() public payable {
+        
+        //The amount that is bid is sent as msg.value
         uint256 amount = msg.value;
+
+        //The bidding condition should not fail
         require(endOfBidding != 0);
-        //require(bidCheck[msg.sender] != true);
+
+        //Each person can only bid once
+        require(bidCheck[msg.sender] != true);
+
+        //Store the amount bid for later withdrawals incase of failure to win auction
+        amountBid[msg.sender] = amount;
+
+        //Storing the balance of each bidder
         balanceBidders[msg.sender] += msg.sender.balance;
-        require(balanceBidders[msg.sender] >= reservePrice);
+
+        //The balance available in the account of the bidder should be greater than or equal to the amount bid
         require(balanceBidders[msg.sender] >= amount);
+
+        //If the bid is higher than the previously processed bids, update accordingly
         if (amount > highBid) {
-            
+            //The bidder is now the highest bidder, the previous highest bid is the second highest bid
             highBidder = msg.sender;
             secondBid = highBid;
             highBid = amount;
         }
+        //Mark the account/address as checked, to prevent multiple bids
         bidCheck[msg.sender] = true;
-        //endOfBidding -= 1;
+
+        //Change bidding condition variable
+        endOfBidding -= 1;
     }
-    function receive() external payable {
-        
-    }
+
+    //Fucntion used to check balance of the smart contract
     function balanceof() external view returns(uint){
+        
         return address(this).balance;
     }
+
+    //End auction function that accounts can use to withdraw funds used in the bidding if they failed to win the auction
     function endAuction() public payable{
-        endOfBidding = 0;
+        
+        //The highest bidder is not allowed to attempt withdrawal
+        require(msg.sender != highBidder);
+        
+        msg.sender.transfer(amountBid[msg.sender]);
+        
+        //The amount owed is reset to 0
+        amountBid[msg.sender] = 0;
     }
 }
