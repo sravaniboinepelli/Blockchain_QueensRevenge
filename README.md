@@ -1,11 +1,3 @@
 # Queen Anne’s Revenge
 
-## A distributed app made on Solidity using smart contracts
-
-
-
-
-
-
-
-
+## Distributing Trust and Blockchain Assignment using smart contracts written in Solidity
