@@ -8,5 +8,5 @@
 
 ### Run: 
 #### truffle compile 
-#### truffle migrate --reset --noOfBids X --minPrice Y \
+#### truffle migrate --reset --noOfBids X --minPrice Y 
 #### truffle console 
