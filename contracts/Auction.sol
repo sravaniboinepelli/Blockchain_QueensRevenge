@@ -28,6 +28,10 @@ contract Auction {
     //Mapping of the balances of all the bidders
     mapping(address => uint256) public amountBid;
     
+    //Mapping of the hashed bids of the bidders
+    mapping(address => bytes32) public hashedBids;
+    
+    bytes public check;
     //Constructor
     constructor (uint256 minPrice, uint256 numberOfBids) public {
         
@@ -47,32 +51,33 @@ contract Auction {
     }
 
     //Function that recieves hashed bid
-    function hashBid(byte32 hash) public {
-        hashBid[msg.sender] = hash;
+    function hashBid(bytes32 hashed) public {
+        hashedBids[msg.sender] = hashed;
 
     }
     //Function that accounts use to make bids
-    function Bid(uint256 nonce) public payable {
+    function Bid() public payable {
 
         //The amount that is bid is sent as msg.value
         uint256 amount = msg.value;
-        
-        require(keccak256(amount,nonce) == hashBid[msg.sender]);
+        //bytes memory amount_bytes = toBytes(amount);
+        //check = amount_bytes;
+        require(keccak256(abi.encodePacked(amount)) == hashedBids[msg.sender]);
 
         //The bidding condition should not fail
-        require(endOfBidding != 0);
+        //require(endOfBidding != 0);
 
         //Each person can only bid once
-        require(bidCheck[msg.sender] != true);
+        //require(bidCheck[msg.sender] != true);
 
         //Store the amount bid for later withdrawals incase of failure to win auction
-        amountBid[msg.sender] = amount;
+        //amountBid[msg.sender] = amount;
 
         //Storing the balance of each bidder
         balanceBidders[msg.sender] += msg.sender.balance;
 
         //The balance available in the account of the bidder should be greater than or equal to the amount bid
-        require(balanceBidders[msg.sender] >= amount);
+        //require(balanceBidders[msg.sender] >= amount);
 
         //If the bid is higher than the previously processed bids, update accordingly
         if (amount > highBid) {
@@ -93,7 +98,14 @@ contract Auction {
         
         return address(this).balance;
     }
-
+    
+    //Uint to bytes conversion function
+    function toBytes(uint256 x) public pure returns (bytes memory b) {
+        b = new bytes(32);
+        for (uint i = 0; i < 32; i++) {
+        b[i] = byte(uint8(x / (2**(8*(31 - i))))); 
+        }
+    }
     //End auction function that accounts can use to withdraw funds used in the bidding if they failed to win the auction
     function endAuction() public payable{
 
