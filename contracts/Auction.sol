@@ -46,11 +46,18 @@ contract Auction {
         bidCheck[seller] = true;
     }
 
+    //Function that recieves hashed bid
+    function hashBid(byte32 hash) public {
+        hashBid[msg.sender] = hash;
+
+    }
     //Function that accounts use to make bids
-    function Bid() public payable {
-        
+    function Bid(uint256 nonce) public payable {
+
         //The amount that is bid is sent as msg.value
         uint256 amount = msg.value;
+        
+        require(keccak256(amount,nonce) == hashBid[msg.sender]);
 
         //The bidding condition should not fail
         require(endOfBidding != 0);
@@ -89,12 +96,19 @@ contract Auction {
 
     //End auction function that accounts can use to withdraw funds used in the bidding if they failed to win the auction
     function endAuction() public payable{
+
+        //Require that withdrawal not be allowed if no money is owed
+        require(amountBid[msg.sender] != 0);
         
-        //The highest bidder is not allowed to attempt withdrawal
-        require(msg.sender != highBidder);
-        
-        msg.sender.transfer(amountBid[msg.sender]);
-        
+        //Allow highest bidder to withdraw excess money
+        if(msg.sender == highBidder){
+            uint256 returnamount = highBid - secondBid;
+            msg.sender.transfer(returnamount);
+        }
+        //Allow losing bidders to withdraw their entire funds
+        else {
+            msg.sender.transfer(amountBid[msg.sender]);
+        }
         //The amount owed is reset to 0
         amountBid[msg.sender] = 0;
     }
