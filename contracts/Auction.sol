@@ -51,17 +51,16 @@ contract Auction {
     }
 
     //Function that recieves hashed bid
-    function hashBid(bytes32 hashed) public {
+    function hashBid(bytes32 hashed) public returns(bytes32){
         hashedBids[msg.sender] = hashed;
-
+        return keccak256(abi.encodePacked(uint256(123)));
     }
     //Function that accounts use to make bids
     function Bid() public payable {
 
         //The amount that is bid is sent as msg.value
         uint256 amount = msg.value;
-        //bytes memory amount_bytes = toBytes(amount);
-        //check = amount_bytes;
+
         require(keccak256(abi.encodePacked(amount)) == hashedBids[msg.sender]);
 
         //The bidding condition should not fail
@@ -99,13 +98,6 @@ contract Auction {
         return address(this).balance;
     }
     
-    //Uint to bytes conversion function
-    function toBytes(uint256 x) public pure returns (bytes memory b) {
-        b = new bytes(32);
-        for (uint i = 0; i < 32; i++) {
-        b[i] = byte(uint8(x / (2**(8*(31 - i))))); 
-        }
-    }
     //End auction function that accounts can use to withdraw funds used in the bidding if they failed to win the auction
     function endAuction() public payable{
 
