@@ -5,33 +5,32 @@ contract Auction {
     address public seller;
 
     //The minimum reserve price given by the seller
-    uint256 public reservePrice;
+    uint256 reservePrice;
 
     //Variable for triggering the end of the bidding, can be replaced with time based system
-    uint256 public endOfBidding;
+    uint256 endOfBidding;
 
     //Address of highest bidder so far
-    address public highBidder;
+    address highBidder;
 
     //Value of highest bid so far
-    uint256 public highBid;
+    uint256 highBid;
 
     //Value of second highest bid so far
-    uint256 public secondBid;
+    uint256 secondBid;
 
     //Mapping that is used to check if the bid of a certain address has been processed
-    mapping(address => bool) public bidCheck;
+    mapping(address => bool) bidCheck;
 
     //Mapping of the balances of all the bidders
-    mapping(address => uint256) public balanceBidders;
+    mapping(address => uint256) balanceBidders;
 
     //Mapping of the balances of all the bidders
-    mapping(address => uint256) public amountBid;
+    mapping(address => uint256) amountBid;
     
     //Mapping of the hashed bids of the bidders
-    mapping(address => bytes32) public hashedBids;
+    mapping(address => bytes32) hashedBids;
     
-    bytes public check;
     //Constructor
     constructor (uint256 minPrice, uint256 numberOfBids) public {
         
@@ -51,9 +50,8 @@ contract Auction {
     }
 
     //Function that recieves hashed bid
-    function hashBid(bytes32 hashed) public returns(bytes32){
+    function hashBid(bytes32 hashed) public {
         hashedBids[msg.sender] = hashed;
-        return keccak256(abi.encodePacked(uint256(123)));
     }
     //Function that accounts use to make bids
     function Bid() public payable {
