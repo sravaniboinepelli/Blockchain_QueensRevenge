@@ -62,19 +62,19 @@ contract Auction {
         require(keccak256(abi.encodePacked(amount)) == hashedBids[msg.sender]);
 
         //The bidding condition should not fail
-        //require(endOfBidding != 0);
+        require(endOfBidding != 0);
 
         //Each person can only bid once
         //require(bidCheck[msg.sender] != true);
 
         //Store the amount bid for later withdrawals incase of failure to win auction
-        //amountBid[msg.sender] = amount;
+        amountBid[msg.sender] += amount;
 
         //Storing the balance of each bidder
         balanceBidders[msg.sender] += msg.sender.balance;
 
         //The balance available in the account of the bidder should be greater than or equal to the amount bid
-        //require(balanceBidders[msg.sender] >= amount);
+        require(balanceBidders[msg.sender] >= amount);
 
         //If the bid is higher than the previously processed bids, update accordingly
         if (amount > highBid) {
@@ -83,8 +83,9 @@ contract Auction {
             secondBid = highBid;
             highBid = amount;
         }
+
         //Mark the account/address as checked, to prevent multiple bids
-        bidCheck[msg.sender] = true;
+        //bidCheck[msg.sender] = true;
 
         //Change bidding condition variable
         endOfBidding -= 1;
@@ -98,20 +99,24 @@ contract Auction {
     
     //End auction function that accounts can use to withdraw funds used in the bidding if they failed to win the auction
     function endAuction() public payable{
+        
+        uint256 returnamount = amountBid[msg.sender];
+
+        //The amount owed is reset to 0
+        amountBid[msg.sender] = 0;
 
         //Require that withdrawal not be allowed if no money is owed
-        require(amountBid[msg.sender] != 0);
+        require(returnamount != 0);
         
         //Allow highest bidder to withdraw excess money
         if(msg.sender == highBidder){
-            uint256 returnamount = highBid - secondBid;
+            returnamount = highBid - secondBid;
             msg.sender.transfer(returnamount);
         }
         //Allow losing bidders to withdraw their entire funds
         else {
-            msg.sender.transfer(amountBid[msg.sender]);
+            msg.sender.transfer(returnamount);
         }
-        //The amount owed is reset to 0
-        amountBid[msg.sender] = 0;
+
     }
 }
