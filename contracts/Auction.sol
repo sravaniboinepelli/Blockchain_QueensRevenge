@@ -52,6 +52,9 @@ contract Auction {
     //Function that recieves hashed bid
     function hashBid(bytes32 hashed) public {
         hashedBids[msg.sender] = hashed;
+        
+        //Change bidding condition variable
+        endOfBidding -= 1;        
     }
     //Function that accounts use to make bids
     function Bid() public payable {
@@ -86,9 +89,6 @@ contract Auction {
 
         //Mark the account/address as checked, to prevent multiple bids
         //bidCheck[msg.sender] = true;
-
-        //Change bidding condition variable
-        endOfBidding -= 1;
     }
 
     //Fucntion used to check balance of the smart contract
