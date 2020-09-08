@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.22 <0.8.0;
 
+/// @title Contract for sealed bid pirate auction as part of the assignment
+/// @dev All function calls are currently implemented without side effects
+
 import "./Auction.sol";
 
 contract BarbossaAuction {
@@ -27,13 +30,13 @@ contract BarbossaAuction {
     mapping(address => BidderInfo) bidders;
     mapping(uint8 => WinnerInfo) winner;
 
-    //number of members in bidding ring 9
+    /// @notice number of members in bidding ring 9
     uint256 numRingMembers = 0;
 
-    // number of members that sent sealed bid
+    /// @notice  number of members that sent sealed bid
     uint8 numCurrentSentSealed = 0;
 
-    // number of members that revealed bid
+    /// @notice  number of members that revealed bid
     uint8 numCurrentRevealed = 0;
 
     uint256 public nameofDeployer;
@@ -65,7 +68,7 @@ contract BarbossaAuction {
     );
 
     
-    //Constructor initialize default values
+    /// @notice Constructor initialize default values
     constructor (uint256 name, address[] memory _members) public  {
         uint256 validName = 0x426172626f737361;
 
@@ -88,7 +91,9 @@ contract BarbossaAuction {
               addressVyperAucContract = _addressVyperAuc;
     }
 
-    //user calls this function to send the hased value of the bid amount
+
+    /// @notice Function that receives the sealed bids
+    /// @param hashed the hashed bid that the function receives
     function sealedBid(bytes32 hashed) public  {
         require(ringMembers[msg.sender] == true, "Only Members can bid");
         BidderInfo storage bidder = bidders[msg.sender];
@@ -104,14 +109,19 @@ contract BarbossaAuction {
         numCurrentSentSealed += 1;
        
     }
-
+    /// @notice Function that hashes value and secret
+    /// @param value the value of the bid to be hashed
+    /// @param secret the key with which the value is hashed 
     function getHash(uint256 value, uint256 secret) pure internal returns(bytes32) {
 
        return keccak256(abi.encodePacked(value,secret));
 
     }
-    //Function to reveal bid value and nonce used to create the hased bid value sent during sealedBid Call.
-    function revealBid(uint256 value, uint256 secret) public payable {
+    
+    /// @notice Function to reveal bid value and secret used to create the hashed bid value sent during function sealedBid()
+    /// @param value the value of the bid that was hashed
+    /// @param secret the key with which the value was hashed 
+        function revealBid(uint256 value, uint256 secret) public payable {
 
         //The bidding condition shouldnt fail
         require(numCurrentSentSealed >= numRingMembers, " Barbossa Bidding phase is not complete");
@@ -155,7 +165,9 @@ contract BarbossaAuction {
         bidder.revealedBid = true;
         numCurrentRevealed +=1; 
     }
-    // Deployer has to call this function with Address of vyper Auction contract to send winning bid
+
+    /// @notice Deployer has to call this function with Address of vyper Auction contract to send winning bid
+    /// @param _vyperAuctionContract the address of the sealed second bid auction contract
     function sendWinningBidToVyperAuction(address payable _vyperAuctionContract) public {
 
         require(msg.sender == deployer, "Deployer can only send the winning bid to Vyper Auction");
@@ -165,7 +177,8 @@ contract BarbossaAuction {
         vyperAuct.hashBid(winner[0].bidder, getHash(winner[0].bidValue, winner[0].nonce));
         
     }
-    // Deployer has to call this function after sendWinningBidToVyperAuction to reveal bid values
+
+    /// @notice Deployer has to call this function after sendWinningBidToVyperAuction to reveal bid values  
     function revealWinningBidToVyperAuction() public {
 
         require(addressVyperAucContract != address(0), "sendWinningBidToVyperAuction is not called");
@@ -175,8 +188,8 @@ contract BarbossaAuction {
         vyperAuct.Bid.value(winner[0].bidValue)(winner[0].bidder, winner[0].bidValue,winner[0].nonce);
         
     }
-    // Deployer has to call this function after revealWinningBidToVyperAuction to get money back in 
-    // in case of loosing or the difference from ring winner bid value plus vyper second highest bid.
+    
+    /// @notice Deployer has to call this function after revealWinningBidToVyperAuction() to get money back in case of losing or the difference from ring winner bid value plus vyper second highest bid.
     function getmoneyFromVyperAuction() public returns (bool){
 
         require(addressVyperAucContract != address(0), "sendWinningBidToVyperAuction is not called");
@@ -185,7 +198,8 @@ contract BarbossaAuction {
         vyperAuct.endAuction(winner[0].bidder);
 
     }
-    // Bid loosers call this function to get their money back
+
+    /// @notice Bid losers call this function to get their money back
     function withDrawMoney() public{
         require(numCurrentRevealed >= numRingMembers, " Barbossa Reveal phase is not complete");
         require(winner[0].bidder != msg.sender, "Can't withdraw yet, Deployer will get your money back");
@@ -200,8 +214,8 @@ contract BarbossaAuction {
 
     }
 
-    // Fall back function to receive any transfers
-    function() external payable { 
+    /// @notice  Fallback function to receive any transfers
+    receive() external payable { 
 
     }
     

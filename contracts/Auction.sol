@@ -1,41 +1,49 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity >=0.4.22 <0.8.0;
+/// @title Contract for sealed bid second bid auction
+/// @dev All function calls are currently implemented without side effects
+
 contract Auction {
     
-    //Address of the person selling
+
+    /// @notice Address of the person selling
     address payable public seller;
 
-    //The minimum reserve price given by the seller
+    /// @notice The minimum reserve price given by the seller
     uint256 reservePrice;
 
-    //Variable for triggering the end of the bidding, can be replaced with time based system
+    /// @notice Variable for triggering the end of the bidding, can be replaced with time based system
     uint256 endOfBidding;
 
-    //Address of highest bidder so far
+    /// @notice Address of highest bidder so far
     address payable highBidder;
 
-    //Value of highest bid so far
+    /// @notice Value of highest bid so far
     uint256 highBid;
 
-    //Value of second highest bid so far
+    /// @notice Value of second highest bid so far
     uint256 secondBid;
 
-    //Mapping used to check if the bid of a certain address has been processed
+    /// @notice Mapping used to check if the bid of a certain address has been processed
     mapping(address => bool) bidCheck;
 
-    //Mapping balances of all bidders
+    /// @notice Mapping balances of all bidders
     mapping(address => uint256) balanceBidders;
 
-    //Mapping balances of all bidders
+    /// @notice Mapping amount bid of all bidders
     mapping(address => uint256) amountBid;
     
-    //Mapping hashed bids of the bidders
+    /// @notice Mapping hashed bids of the bidders
     mapping(address => bytes32) hashedBids;
+
+    /// @notice Event for receiving hashed bids
     event HashBid(
         address indexed _from,
         bytes32 _value
     );
+
+    /// @notice Event for receiving revealed bids
     event BidRecvd(
         address indexed _from,
         uint256 _value,
@@ -43,12 +51,15 @@ contract Auction {
         uint256 _mvalue
 
     );
+
+    /// @notice Event for withdrawal of funds at auction end
      event EndAuction(
         address indexed _from,
         address indexed _winner,
         uint256 _amount
     );
-    //Constructor
+
+    /// @notice Constructor to initialise minPrice of auction, and number of bids in the auction
     constructor (uint256 minPrice, uint256 numberOfBids) public  {
         
         //Set reserve price
@@ -65,7 +76,9 @@ contract Auction {
         bidCheck[seller] = true;
     }
 
-    //Function that recieves hashed bid
+    /// @notice Function that recieves hashed bid
+    /// @param from the address of the person sending the hashed bid 
+    /// @param hashed the hash sent to the contract
     function hashBid(address payable from, bytes32 hashed) external  {
         if (from == address(0)) {
             from = msg.sender;
@@ -78,20 +91,26 @@ contract Auction {
         hashedBids[from] = hashed;
         emit HashBid(from, hashed);
 
-        //Mark the account/address as checked, to prevent multiple bids
+        /// @notice Mark the account/address as checked, to prevent multiple bids
         bidCheck[from] = true;
 
-        //Change bidding condition variable
+        /// @notice Change bidding condition variable
         endOfBidding -= 1;
     }
 
-    
+    /// @notice Function that hashes value and secret
+    /// @param value the value of the bid to be hashed
+    /// @param secret the key with which the value is hashed 
     function getHashValue(uint256 value, uint256 secret) pure internal returns(bytes32) {
 
          return keccak256(abi.encodePacked(value,secret));
 
     }
-    //Function that accounts use to make bids
+    
+    /// @notice Function that receives the bid after the end of the auction 
+    /// @param from the address of the person sending the bid, the secret key
+    /// @param value the value of the bid as claimed by the sender
+    /// @param secret the secret with which the value was hashed to give the hashed value 
     function Bid(address payable from, uint256 value, uint256 secret) external payable {
         if (from == address(0)){
             from = msg.sender;
@@ -131,13 +150,15 @@ contract Auction {
         
     }
 
-    //Fucntion used to check balance of the smart contract
+    /// @notice Function that returns the balance of the sender
     function balanceof() external view returns(uint){
         
         return address(this).balance;
     }
     
-    //End auction function that accounts can use to withdraw funds used in the bidding if they failed to win the auction
+   
+    /// @notice End auction function that accounts can use to withdraw funds used in the bidding if they failed to win the auction
+    /// @param from the address of the person requesting the withdrawal     
     function endAuction(address payable from) external {
 
         if (from == address(0)) {
