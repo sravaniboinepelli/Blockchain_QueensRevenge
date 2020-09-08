@@ -58,10 +58,15 @@ contract BarbossaAuction {
         address indexed _from,
         uint256 _name
     );
+    event WithDrewMoney(
+        address indexed _from,
+        uint256 value
+
+    );
 
     
     //Constructor initialize default values
-    constructor (uint256 name, address[] memory _members) public payable {
+    constructor (uint256 name, address[] memory _members) public  {
         uint256 validName = 0x426172626f737361;
 
         // if (validName == name){
@@ -84,7 +89,7 @@ contract BarbossaAuction {
     }
 
     //user calls this function to send the hased value of the bid amount
-    function sealedBid(bytes32 hashed) public payable {
+    function sealedBid(bytes32 hashed) public  {
         require(ringMembers[msg.sender] == true, "Only Members can bid");
         BidderInfo storage bidder = bidders[msg.sender];
 
@@ -115,6 +120,7 @@ contract BarbossaAuction {
         require(bidder.revealedBid != true, "Can reveal bid only once");
 
         require(numCurrentRevealed <= numRingMembers, "Reveal phase is completed");
+        require(msg.value >= value, "Auction not enough ether");
 
         emit RevealBid(msg.sender, value, secret);
         bytes32 hashValue = getHash(value, secret);
@@ -124,14 +130,12 @@ contract BarbossaAuction {
 
         //The balance available in the account of the bidder should be greater than or equal to the amount bid
 
-        // require(balanceBidders[msg.sender] >= value, "Barbossa Not enough balance");
         require(msg.sender.balance >= value, "Barbossa Not enough balance");
 
         //Store the amount bid for later withdrawals incase of failure to win BarbossaAuction
         bidder.bidValue += value;
 
         //Storing the balance of each bidder
-        // balanceBidders[msg.sender] += msg.sender.balance;
         bidder.balance += msg.sender.balance;
 
         emit RevealBid(msg.sender, bidder.balance, numCurrentRevealed);
@@ -152,7 +156,7 @@ contract BarbossaAuction {
         numCurrentRevealed +=1; 
     }
     // Deployer has to call this function with Address of vyper Auction contract to send winning bid
-    function sendWinningBidToVyperAuction(address payable _vyperAuctionContract) public payable{
+    function sendWinningBidToVyperAuction(address payable _vyperAuctionContract) public {
 
         require(msg.sender == deployer, "Deployer can only send the winning bid to Vyper Auction");
         require(numCurrentRevealed >= numRingMembers, " Barbossa Reveal phase is not complete");
@@ -162,25 +166,40 @@ contract BarbossaAuction {
         
     }
     // Deployer has to call this function after sendWinningBidToVyperAuction to reveal bid values
-    function revealWinningBidToVyperAuction() public payable{
+    function revealWinningBidToVyperAuction() public {
 
         require(addressVyperAucContract != address(0), "sendWinningBidToVyperAuction is not called");
         require(msg.sender == deployer, "Deployer can only reveal the winning bid to Vyper Auction");
         Auction vyperAuct = Auction(addressVyperAucContract);
         emit callVyperReveal(winner[0].bidder, winner[0].bidValue,winner[0].nonce);
-        vyperAuct.Bid(winner[0].bidder, winner[0].bidValue,winner[0].nonce);
+        vyperAuct.Bid.value(winner[0].bidValue)(winner[0].bidder, winner[0].bidValue,winner[0].nonce);
         
     }
     // Deployer has to call this function after revealWinningBidToVyperAuction to get money back in 
     // in case of loosing or the difference from ring winner bid value plus vyper second highest bid.
-    function getmoneyFromVyperAuction() public payable returns (bool){
+    function getmoneyFromVyperAuction() public returns (bool){
 
         require(addressVyperAucContract != address(0), "sendWinningBidToVyperAuction is not called");
         require(msg.sender == deployer, "Deployer can only interact with Vyper Auction");
         Auction vyperAuct = Auction(addressVyperAucContract);
         vyperAuct.endAuction(winner[0].bidder);
 
-    } 
+    }
+    // Bid loosers call this function to get their money back
+    function withDrawMoney() public{
+        require(numCurrentRevealed >= numRingMembers, " Barbossa Reveal phase is not complete");
+        require(winner[0].bidder != msg.sender, "Can't withdraw yet, Deployer will get your money back");
+        BidderInfo storage bidder = bidders[msg.sender];
+        uint256 returnamount = bidder.bidValue;
+        //The amount owned is reset to 0
+        bidder.bidValue = 0;
+        //Require withdrawal not be allowed if no money is owed
+        require(returnamount != 0, "No Amount is due");
+        msg.sender.transfer(returnamount);
+        emit WithDrewMoney(msg.sender, returnamount);
+
+    }
+
     // Fall back function to receive any transfers
     function() external payable { 
 

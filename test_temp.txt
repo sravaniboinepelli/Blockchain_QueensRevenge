@@ -1,4 +1,3 @@
-truffle migrate reset --noOfBids 2 --minPrice 9 --deployerName 'Barbossa' --members '0xca35b7d915458ef540ade6068dfe2f44e8fa733c,0x14723a09acff6d2a60dcdf7aa4aff308fddc160c,0x4b0897b0513fdc7c541b6d9d7e929c4e5364d2db'
 var hx = web3.utils.soliditySha3(0x10, 0x20);
 var hx1 = web3.utils.soliditySha3(0x11, 0x20);
 var hx2 = web3.utils.soliditySha3(0x14, 0x20);
@@ -6,16 +5,13 @@ var bt2 = web3.utils.hexToBytes(hx1);
 var bt1 = web3.utils.hexToBytes(hx);
 var bt3 = web3.utils.hexToBytes(hx2);
 
-truffle migrate reset --noOfBids 2 --minPrice 9 --deployerName 'Barbossa' --members '0xBd5E0b98eAC12776D68c652Fcc08b65Fc7A22b97,0xdf09FA52A22495aC6DF3409B303236eA4fB6607e,0x1245AeB9EbC2A69afD887b923939f985fcdab377'
-
+truffle migrate reset --noOfBids 2 --minPrice 9 --deployerName 'Barbossa' --members '0xfBA07C630A9842a51650fe7C01EA72f4a160D7ad,0x1bB65CD1381967D435D3BCf34ab3960D48Efa067,0x1BBCA8Ee7206c05cBA2dbb7CA450786A3D424caf'
 
 var addr3 = "0x0000000000000000000000000000000000000000";
 //need to update it for everycontract deploy ment as the address changes
 
 
-var aucaddr = "0xde418F86C1e4CEFdd814742A71BfBe4eac9550E5"
-
-
+var aucaddr = "0x23f3E5e97935E0a2F2cE93010B271b11480Bf569"
 
 let accounts = await web3.eth.getAccounts()
 
@@ -27,39 +23,54 @@ var baddr1 = accounts[9];
 var baddr2 = accounts[8];
 var baddr3 = accounts[7];
 
-instB1.sealedBid(bt2, {from:baddr2,value:0x40});
-instB1.sealedBid(bt1, {from:baddr1,value:0x40});
-instB1.sealedBid(bt3, {from:baddr3,value:0x40});
-instB1.sealedBid(bt1, {from:accounts[0],value:0x40});
-
-
-instB1.revealBid(0x11, 0x20, {from:baddr2,value:0x40});
-instB1.revealBid(0x10, 0x20, {from:baddr1,value:0x40});
-instB1.revealBid(0x14, 0x20, {from:baddr3,value:0x40});
-instB1.revealBid(0x14, 0x20, {from:accounts[0],value:0x40});
-
-
-
-
-
 inst1 = await Auction.deployed();
 
 instB1 = await BarbossaAuction.deployed();
 
-instB1.sealedBid(bt2, {from:baddr2,value:0x40});
-instB1.revealBid(0x11, 0x20, {from:baddr2,value:0x40});
+instB1.sealedBid(bt2, {from:baddr2});
+instB1.sealedBid(bt1, {from:baddr1});
+instB1.sealedBid(bt3, {from:baddr3});
+instB1.sealedBid(bt1, {from:accounts[0]});
 
 
-instB1.sendWinningBidToVyperAuction(aucaddr, {value:0x40})
+instB1.revealBid(0x11, 0x20, {from:baddr2,value:0x11});
+instB1.revealBid(0x10, 0x20, {from:baddr1,value:0x10});
+instB1.revealBid(0x14, 0x20, {from:baddr3,value:0x14});
+instB1.revealBid(0x10, 0x20, {from:accounts[0],value:0x14});
+
+instB1.sendWinningBidToVyperAuction(aucaddr)
+
+inst1.hashBid(addr3, bt1, {from:addr2});
+inst1.hashBid(addr3, bt2, {from:addr1});
+
+inst1.Bid(addr3,0x10, 0x20, {from:addr2, value:0x10});
+inst1.Bid(addr3,0x11, 0x20, {from:addr1, value:0x11});
 
 
-inst1.hashBid(addr3, bt1, {from:addr2, value:0x20});
-inst1.Bid(addr3,0x10, 0x20, {from:addr2, value:0x20});
+instB1.revealWinningBidToVyperAuction();
+instB1.getmoneyFromVyperAuction();
+inst1.endAuction(addr3, {from:addr2});
+
+instB1.withDrawMoney( {from:baddr2});
+instB1.withDrawMoney( {from:baddr1});
+instB1.withDrawMoney( {from:baddr3});
+instB1.withDrawMoney( {from:accounts[0]})
+
+
+
+
+
+
 
 instB1.revealWinningBidToVyperAuction({value:0x40});
 instB1.getmoneyFromVyperAuction({value:0x40});
 inst1.endAuction(addr3, {from:addr2});
 
+instB1.revealWinningBidToVyperAuction({value:0x40});
+instB1.getmoneyFromVyperAuction({value:0x40});
+inst1.endAuction(addr3, {from:addr2});
+
+inst1.endAuction(addr3, {from:addr1});
 
 
 

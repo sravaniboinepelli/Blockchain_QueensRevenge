@@ -49,7 +49,7 @@ contract Auction {
         uint256 _amount
     );
     //Constructor
-    constructor (uint256 minPrice, uint256 numberOfBids) public payable {
+    constructor (uint256 minPrice, uint256 numberOfBids) public  {
         
         //Set reserve price
         reservePrice = minPrice;
@@ -66,7 +66,7 @@ contract Auction {
     }
 
     //Function that recieves hashed bid
-    function hashBid(address payable from, bytes32 hashed) external payable {
+    function hashBid(address payable from, bytes32 hashed) external  {
         if (from == address(0)) {
             from = msg.sender;
         }
@@ -95,14 +95,16 @@ contract Auction {
     function Bid(address payable from, uint256 value, uint256 secret) external payable {
         if (from == address(0)){
             from = msg.sender;
+
         }
         //The bidding condition should not fail
         require(endOfBidding <= 0, "Auction Bidding phase not completed");
 
         //The amount that is bid is sent as msg.value
         uint256 amount = value;
+        require(msg.value >= value, "Auction not enough ether");
 
-        emit BidRecvd(from, msg.value, from.balance, amount);
+        emit BidRecvd(msg.sender, msg.value, from.balance, amount);
 
         bytes32 hashV = getHashValue(value, secret);
 
@@ -114,7 +116,7 @@ contract Auction {
         //Storing the balance of each bidder
         balanceBidders[from] += from.balance;
 
-        emit BidRecvd(from, balanceBidders[from], amount, msg.value);
+        emit BidRecvd(from, balanceBidders[from], value, msg.value);
 
         //The balance available in the account of the bidder should be greater than or equal to the amount bid
         require(balanceBidders[from] >= amount, "Auction not enough balance");
@@ -126,7 +128,6 @@ contract Auction {
             secondBid = highBid;
             highBid = value;
         }
-
         
     }
 
@@ -137,7 +138,7 @@ contract Auction {
     }
     
     //End auction function that accounts can use to withdraw funds used in the bidding if they failed to win the auction
-    function endAuction(address payable from) external payable{
+    function endAuction(address payable from) external {
 
         if (from == address(0)) {
             from = msg.sender;
