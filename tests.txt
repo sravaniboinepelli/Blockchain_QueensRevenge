@@ -37,20 +37,7 @@ E - 18 eth
 Expected Result: E wins auction and pays 13 eth
 Explanation: Pirate B proceeds to the Vycar auction after the bidding ring. E has the highest bid in the Vycar auction and pays 13 wei (2nd highest bid by B).
 
-> Test Case 4: Multiple bids by same bidder
-Bidding ring bids:
-A - 1 wei
-B - 2 wei
-A - 3 wei
-
-Other Vycar auction bids:
-C - 1 wei
-C - 2 wei
-
-Expected Result: A wins auction and has to pay 1 wei
-Explanation: A and C make multiple bids but we follow the same concept of maximum bid wins. A proceeds to the Vycar auction from the bidding ring and wins the auction to pay 2 wei (2nd highest bid by C).
-
-> Test Case 5: Multiple bids of same value
+> Test Case 4: Multiple bids of same value
 Bidding ring bids:
 A - 19 wei
 B - 29 wei
@@ -63,7 +50,7 @@ E - 39 wei
 Expected Result: E or C can win auction (random) and have to pay 39 wei
 Explanation: Pirate C wins bidding ring to participate in Vycar Auction. Both E and C have the same value highest bids. So, either can win the auction and the 2nd highest value is 39 wei only (as two bids amount to the same).
 
-> Test Case 6: Only 1 pirate
+> Test Case 5: Only 1 pirate
 Bidding ring bids:
 A - 2 wei
 
