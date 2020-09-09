@@ -10,31 +10,31 @@ contract Auction {
     /// @notice Address of the person selling
     address payable public seller;
 
-    /// @notice The minimum reserve price given by the seller
+    /// @dev The minimum reserve price given by the seller
     uint256 reservePrice;
 
-    /// @notice Variable for triggering the end of the bidding, can be replaced with time based system
+    /// @dev Variable for triggering the end of the bidding, can be replaced with time based system
     uint256 endOfBidding;
 
-    /// @notice Address of highest bidder so far
+    /// @dev Address of highest bidder so far
     address payable highBidder;
 
-    /// @notice Value of highest bid so far
+    /// @dev Value of highest bid so far
     uint256 highBid;
 
-    /// @notice Value of second highest bid so far
+    /// @dev Value of second highest bid so far
     uint256 secondBid;
 
-    /// @notice Mapping used to check if the bid of a certain address has been processed
+    /// @dev Mapping used to check if the bid of a certain address has been processed
     mapping(address => bool) bidCheck;
 
-    /// @notice Mapping balances of all bidders
+    /// @dev Mapping balances of all bidders
     mapping(address => uint256) balanceBidders;
 
-    /// @notice Mapping amount bid of all bidders
+    /// @dev Mapping amount bid of all bidders
     mapping(address => uint256) amountBid;
     
-    /// @notice Mapping hashed bids of the bidders
+    /// @dev Mapping hashed bids of the bidders
     mapping(address => bytes32) hashedBids;
 
     /// @notice Event for receiving hashed bids
@@ -98,7 +98,7 @@ contract Auction {
         endOfBidding -= 1;
     }
 
-    /// @notice Function that hashes value and secret
+    /// @dev Function that hashes value and secret
     /// @param value the value of the bid to be hashed
     /// @param secret the key with which the value is hashed 
     function getHashValue(uint256 value, uint256 secret) pure internal returns(bytes32) {

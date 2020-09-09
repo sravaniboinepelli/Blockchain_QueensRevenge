@@ -30,13 +30,13 @@ contract BarbossaAuction {
     mapping(address => BidderInfo) bidders;
     mapping(uint8 => WinnerInfo) winner;
 
-    /// @notice number of members in bidding ring 9
+    /// @dev number of members in bidding ring 9
     uint256 numRingMembers = 0;
 
-    /// @notice  number of members that sent sealed bid
+    /// @dev  number of members that sent sealed bid
     uint8 numCurrentSentSealed = 0;
 
-    /// @notice  number of members that revealed bid
+    /// @dev  number of members that revealed bid
     uint8 numCurrentRevealed = 0;
 
     uint256 public nameofDeployer;
@@ -109,7 +109,7 @@ contract BarbossaAuction {
         numCurrentSentSealed += 1;
        
     }
-    /// @notice Function that hashes value and secret
+    /// @dev Function that hashes value and secret
     /// @param value the value of the bid to be hashed
     /// @param secret the key with which the value is hashed 
     function getHash(uint256 value, uint256 secret) pure internal returns(bytes32) {
@@ -185,7 +185,9 @@ contract BarbossaAuction {
         require(msg.sender == deployer, "Deployer can only reveal the winning bid to Vyper Auction");
         Auction vyperAuct = Auction(addressVyperAucContract);
         emit callVyperReveal(winner[0].bidder, winner[0].bidValue,winner[0].nonce);
-        vyperAuct.Bid.value(winner[0].bidValue)(winner[0].bidder, winner[0].bidValue,winner[0].nonce);
+        // vyperAuct.Bid.value(winner[0].bidValue)(winner[0].bidder, winner[0].bidValue,winner[0].nonce);
+        vyperAuct.Bid{value:winner[0].bidValue}(winner[0].bidder, winner[0].bidValue,winner[0].nonce);
+
         
     }
     
