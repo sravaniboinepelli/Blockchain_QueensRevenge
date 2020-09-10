@@ -25,6 +25,8 @@ contract BarbossaAuction {
         //Value of highest bid so far
         uint256 bidValue;
         uint256 nonce;
+        uint256 returnAmount;
+        bool gotMoney;
     }
     mapping(address => bool) ringMembers;
     mapping(address => BidderInfo) bidders;
@@ -66,6 +68,8 @@ contract BarbossaAuction {
         uint256 value
 
     );
+   
+
 
     
     /// @notice Constructor initialize default values
@@ -91,7 +95,11 @@ contract BarbossaAuction {
               addressVyperAucContract = _addressVyperAuc;
     }
 
-
+    function balanceof() external view returns(uint){
+        
+        return address(this).balance;
+    }
+    
     /// @notice Function that receives the sealed bids
     /// @param hashed the hashed bid that the function receives
     function sealedBid(bytes32 hashed) public  {
@@ -174,7 +182,7 @@ contract BarbossaAuction {
         require(numCurrentRevealed >= numRingMembers, " Barbossa Reveal phase is not complete");
         this.setAddressAuction(_vyperAuctionContract);
         Auction vyperAuct = Auction(_vyperAuctionContract);
-        vyperAuct.hashBid(winner[0].bidder, getHash(winner[0].bidValue, winner[0].nonce));
+        vyperAuct.hashBid(getHash(winner[0].bidValue, winner[0].nonce));
         
     }
 
@@ -186,8 +194,7 @@ contract BarbossaAuction {
         Auction vyperAuct = Auction(addressVyperAucContract);
         emit callVyperReveal(winner[0].bidder, winner[0].bidValue,winner[0].nonce);
         // vyperAuct.Bid.value(winner[0].bidValue)(winner[0].bidder, winner[0].bidValue,winner[0].nonce);
-        vyperAuct.Bid{value:winner[0].bidValue}(winner[0].bidder, winner[0].bidValue,winner[0].nonce);
-
+        vyperAuct.Bid{value:winner[0].bidValue}(winner[0].bidValue,winner[0].nonce);
         
     }
     
@@ -197,16 +204,25 @@ contract BarbossaAuction {
         require(addressVyperAucContract != address(0), "sendWinningBidToVyperAuction is not called");
         require(msg.sender == deployer, "Deployer can only interact with Vyper Auction");
         Auction vyperAuct = Auction(addressVyperAucContract);
-        vyperAuct.endAuction(winner[0].bidder);
+        winner[0].returnAmount = vyperAuct.endAuction();
+        winner[0].gotMoney = true;
 
     }
 
     /// @notice Bid losers call this function to get their money back
     function withDrawMoney() public{
         require(numCurrentRevealed >= numRingMembers, " Barbossa Reveal phase is not complete");
-        require(winner[0].bidder != msg.sender, "Can't withdraw yet, Deployer will get your money back");
-        BidderInfo storage bidder = bidders[msg.sender];
+        BidderInfo storage bidder = bidders[msg.sender];    
         uint256 returnamount = bidder.bidValue;
+        bool allowed = true;
+        if (winner[0].bidder == msg.sender && winner[0].gotMoney == false){
+            allowed = false; 
+        }
+        require(allowed == true, "Can't withdraw yet, Vyper Auction not done call back ");
+        if (msg.sender == winner[0].bidder){
+            returnamount = winner[0].returnAmount;
+            winner[0].returnAmount = 0;
+        }
         //The amount owned is reset to 0
         bidder.bidValue = 0;
         //Require withdrawal not be allowed if no money is owed
@@ -218,7 +234,8 @@ contract BarbossaAuction {
 
     /// @notice  Fallback function to receive any transfers
     receive() external payable { 
-
+       
+        
     }
     
 }

@@ -77,22 +77,18 @@ contract Auction {
     }
 
     /// @notice Function that recieves hashed bid
-    /// @param from the address of the person sending the hashed bid 
     /// @param hashed the hash sent to the contract
-    function hashBid(address payable from, bytes32 hashed) external  {
-        if (from == address(0)) {
-            from = msg.sender;
-        }
+    function hashBid(bytes32 hashed) external  {
         require(endOfBidding >= 0, "Auction end of Bidding");
 
         // Each person can only bid once
-        require(bidCheck[from] == false, "Can send bid only once");
+        require(bidCheck[msg.sender] == false, "Can send bid only once");
 
-        hashedBids[from] = hashed;
-        emit HashBid(from, hashed);
+        hashedBids[msg.sender] = hashed;
+        emit HashBid(msg.sender, hashed);
 
         /// @notice Mark the account/address as checked, to prevent multiple bids
-        bidCheck[from] = true;
+        bidCheck[msg.sender] = true;
 
         /// @notice Change bidding condition variable
         endOfBidding -= 1;
@@ -108,14 +104,9 @@ contract Auction {
     }
     
     /// @notice Function that receives the bid after the end of the auction 
-    /// @param from the address of the person sending the bid, the secret key
     /// @param value the value of the bid as claimed by the sender
     /// @param secret the secret with which the value was hashed to give the hashed value 
-    function Bid(address payable from, uint256 value, uint256 secret) external payable {
-        if (from == address(0)){
-            from = msg.sender;
-
-        }
+    function Bid(uint256 value, uint256 secret) external payable {
         //The bidding condition should not fail
         require(endOfBidding <= 0, "Auction Bidding phase not completed");
 
@@ -123,27 +114,24 @@ contract Auction {
         uint256 amount = value;
         require(msg.value >= value, "Auction not enough ether");
 
-        emit BidRecvd(msg.sender, msg.value, from.balance, amount);
+        emit BidRecvd(msg.sender, msg.value, msg.sender.balance, amount);
 
         bytes32 hashV = getHashValue(value, secret);
 
-        require(hashV == hashedBids[from], "Auction values does not match");
+        require(hashV == hashedBids[msg.sender], "Auction values does not match");
 
         //Store the amount bid for later withdrawals incase of failure to win auction
-        amountBid[from] += amount;
+        amountBid[msg.sender] += amount;
 
         //Storing the balance of each bidder
-        balanceBidders[from] += from.balance;
+        balanceBidders[msg.sender] += msg.sender.balance;
 
-        emit BidRecvd(from, balanceBidders[from], value, msg.value);
-
-        //The balance available in the account of the bidder should be greater than or equal to the amount bid
-        require(balanceBidders[from] >= amount, "Auction not enough balance");
+        emit BidRecvd(msg.sender, balanceBidders[msg.sender], value, msg.value);
 
         //If the bid is higher than the previously processed bids, update accordingly
         if (value > highBid) {
             //The bidder is now the highest bidder, the previous highest bid is the second highest bid
-            highBidder = from;
+            highBidder = msg.sender;
             secondBid = highBid;
             highBid = value;
         }
@@ -158,36 +146,33 @@ contract Auction {
     
    
     /// @notice End auction function that accounts can use to withdraw funds used in the bidding if they failed to win the auction
-    /// @param from the address of the person requesting the withdrawal     
-    function endAuction(address payable from) external {
+    function endAuction() external returns(uint256) {
 
-        if (from == address(0)) {
-            from = msg.sender;
-        }
-        
         require(highBidder != address(0), "Auction reveal phase is not completed");
         
-        uint256 returnamount = amountBid[from];
+        uint256 returnamount = amountBid[msg.sender];
 
         //The amount owed is reset to 0
-        amountBid[from] = 0;
+        amountBid[msg.sender] = 0;
 
         //Require withdrawal not be allowed if no money is owed
         require(returnamount != 0, "Auction: No Amount is due");
 
         //Allow highest bidder to withdraw excess money
-        if(from == highBidder){
+        if(msg.sender == highBidder){
             returnamount = highBid - secondBid;
-            emit EndAuction(from, highBidder, returnamount);
+            emit EndAuction(msg.sender, highBidder, returnamount);
             if (returnamount != 0) {
-                from.transfer(returnamount);
+                msg.sender.transfer(returnamount);
+                return returnamount;
             }
         }
         //Allow losing bidders to withdraw their entire funds
         else {
-            emit EndAuction(from, highBidder, returnamount);
+            emit EndAuction(msg.sender, highBidder, returnamount);
             if (returnamount != 0) {
-                 from.transfer(returnamount);
+                 msg.sender.transfer(returnamount);
+                 return returnamount;
             }
            
         }
