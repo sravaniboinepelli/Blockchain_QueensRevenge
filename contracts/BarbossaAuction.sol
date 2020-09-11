@@ -20,7 +20,7 @@ contract BarbossaAuction {
          bytes32 sealedBidValue;
     }
     struct WinnerInfo {
-        //Address of highest bidder so far
+        /// @dev Address of highest bidder so far
         address payable bidder;
         //Value of highest bid so far
         uint256 bidValue;
@@ -108,7 +108,7 @@ contract BarbossaAuction {
 
         emit SealedBid(msg.sender, hashed);
 
-        //Each person can only bid once
+        /// @dev Each person can only bid once
         require(bidder.sentBid != true, "Can send bid only once");
         bidder.sealedBidValue = hashed;
 
@@ -131,7 +131,7 @@ contract BarbossaAuction {
     /// @param secret the key with which the value was hashed 
         function revealBid(uint256 value, uint256 secret) public payable {
 
-        //The bidding condition shouldnt fail
+        /// @dev The bidding condition shouldnt fail
         require(numCurrentSentSealed >= numRingMembers, " Barbossa Bidding phase is not complete");
         BidderInfo storage bidder = bidders[msg.sender];
 
@@ -146,22 +146,22 @@ contract BarbossaAuction {
 
         require(hashValue == storedValue, "Barbossa value does not match sealed bid value");
 
-        //The balance available in the account of the bidder should be greater than or equal to the amount bid
+        /// @dev The balance available in the account of the bidder should be greater than or equal to the amount bid
 
         require(msg.sender.balance >= value, "Barbossa Not enough balance");
 
-        //Store the amount bid for later withdrawals incase of failure to win BarbossaAuction
+        /// @dev Store the amount bid for later withdrawals incase of failure to win BarbossaAuction
         bidder.bidValue += value;
 
-        //Storing the balance of each bidder
+        /// @dev Storing the balance of each bidder
         bidder.balance += msg.sender.balance;
 
         emit RevealBid(msg.sender, bidder.balance, numCurrentRevealed);
 
 
-        //If the bid is higher than the previously processed bids, update accordingly
+        /// @dev If the bid is higher than the previously processed bids, update accordingly
         if (value >= winner[0].bidValue) {
-            //The bidder is now the highest bidder
+            /// @dev The bidder is now the highest bidder
             winner[0].bidder = msg.sender;
             winner[0].bidValue = value;
 
@@ -223,9 +223,9 @@ contract BarbossaAuction {
             returnamount = winner[0].returnAmount;
             winner[0].returnAmount = 0;
         }
-        //The amount owned is reset to 0
+        /// @dev The amount owned is reset to 0
         bidder.bidValue = 0;
-        //Require withdrawal not be allowed if no money is owed
+        /// @dev Require withdrawal not be allowed if no money is owed
         require(returnamount != 0, "No Amount is due");
         msg.sender.transfer(returnamount);
         emit WithDrewMoney(msg.sender, returnamount);
