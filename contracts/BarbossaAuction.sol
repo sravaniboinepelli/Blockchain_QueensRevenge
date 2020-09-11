@@ -87,7 +87,7 @@ contract BarbossaAuction {
         }
         
         ringMembers[deployer] = true;
-        numRingMembers += _members.length +1;
+        numRingMembers += _members.length;
 
     }
 
@@ -160,7 +160,7 @@ contract BarbossaAuction {
 
 
         //If the bid is higher than the previously processed bids, update accordingly
-        if (value > winner[0].bidValue) {
+        if (value >= winner[0].bidValue) {
             //The bidder is now the highest bidder
             winner[0].bidder = msg.sender;
             winner[0].bidValue = value;

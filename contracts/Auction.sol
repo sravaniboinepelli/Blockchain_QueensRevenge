@@ -129,7 +129,7 @@ contract Auction {
         emit BidRecvd(msg.sender, balanceBidders[msg.sender], value, msg.value);
 
         //If the bid is higher than the previously processed bids, update accordingly
-        if (value > highBid) {
+        if (value >= highBid) {
             //The bidder is now the highest bidder, the previous highest bid is the second highest bid
             highBidder = msg.sender;
             secondBid = highBid;
