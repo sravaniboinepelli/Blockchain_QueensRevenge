@@ -1,0 +1,77 @@
+
+rm -rf build 
+truffle compile 
+/ganache-2.4.0-linux-x86_64.AppImage
+ In ganache create new workspace from addproject select truffle-config.js and save workspace
+ From accounts section get last 3 accounts and provide them with , to members param in migrate call. Below is an example .
+
+truffle migrate reset --noOfBids 2 --minPrice 9 --deployerName 'Barbossa' --members '0xfBA07C630A9842a51650fe7C01EA72f4a160D7ad,0x1bB65CD1381967D435D3BCf34ab3960D48Efa067,0x1BBCA8Ee7206c05cBA2dbb7CA450786A3D424caf'
+
+truffle console
+Quick test with 3 bit values:
+
+var hx = web3.utils.soliditySha3(0x10, 0x20);
+var hx1 = web3.utils.soliditySha3(0x11, 0x20);
+var hx2 = web3.utils.soliditySha3(0x14, 0x20);
+var bt2 = web3.utils.hexToBytes(hx1);
+var bt1 = web3.utils.hexToBytes(hx);
+var bt3 = web3.utils.hexToBytes(hx2);
+
+
+//need to update it for everycontract deployment(i.e after migrate) as the address changes(this is from the Contracts tab from Auction contarct info address field)
+
+var aucaddr = "0x361Fd397e5AB8845C0c76FcC8fb90c4160482D75"
+
+let accounts = await web3.eth.getAccounts()
+
+
+var addr1 = accounts[2];
+var addr2 = accounts[1];
+
+var baddr1 = accounts[9];
+var baddr2 = accounts[8];
+var baddr3 = accounts[7];
+
+inst1 = await Auction.deployed();
+
+instB1 = await BarbossaAuction.deployed();
+
+instB1.sealedBid(bt2, {from:baddr2});
+instB1.sealedBid(bt1, {from:baddr1});
+instB1.sealedBid(bt3, {from:baddr3});
+instB1.sealedBid(bt1, {from:accounts[0]});
+
+
+instB1.revealBid(0x11, 0x20, {from:baddr2,value:0x11});
+instB1.revealBid(0x10, 0x20, {from:baddr1,value:0x10});
+instB1.revealBid(0x14, 0x20, {from:baddr3,value:0x14});
+instB1.revealBid(0x10, 0x20, {from:accounts[0],value:0x14});
+
+instB1.sendWinningBidToVyperAuction(aucaddr)
+
+inst1.hashBid(bt1, {from:addr2});
+inst1.Bid(0x10, 0x20, {from:addr2, value:0x10});
+
+instB1.revealWinningBidToVyperAuction();
+
+inst1.endAuction({from:addr2});
+instB1.getmoneyFromVyperAuction();
+instB1.withDrawMoney( {from:baddr2});
+instB1.withDrawMoney( {from:baddr1});
+instB1.withDrawMoney( {from:baddr3});
+instB1.withDrawMoney( {from:accounts[0]})
+
+Note: Check events Tab to make sure that u got right results.
+Currently if all the above are executed then you can't test another testcase just with a truffle migrate, 
+it is requiring ganache server exit and start. You can have -ve test cases like another bid not accepting,
+if already sent bid and not accepting reveal before bidding phase etc before finishing the one +ve auction completion 
+test case.
+
+Following is for a qucik test for only Auction.sol 
+inst1.hashBid(bt2, {from:addr1});
+inst1.hashBid(bt1, {from:addr2});
+
+inst1.Bid(0x10, 0x20, {from:addr2, value:0x10});
+inst1.Bid(0x11, 0x20, {from:addr1, value:0x11});
+inst1.endAuction({from:addr2});
+inst1.endAuction({from:addr1});
