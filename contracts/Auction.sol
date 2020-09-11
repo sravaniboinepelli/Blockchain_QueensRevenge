@@ -62,14 +62,14 @@ contract Auction {
     /// @notice Constructor to initialise minPrice of auction, and number of bids in the auction
     constructor (uint256 minPrice, uint256 numberOfBids) public  {
         
-        /// @devSet reserve price
+        /// @dev Set reserve price
         reservePrice = minPrice;
 
-        /// @devIn this case, set endOfBidding limited by number of bids
+        /// @dev In this case, set endOfBidding limited by number of bids
         endOfBidding = numberOfBids;
         seller = msg.sender;
         
-        /// @devSet default highest, second highest bids to the reserve price, and highest bidder to the seller
+        /// @dev Set default highest, second highest bids to the reserve price, and highest bidder to the seller
         highBidder = seller;
         highBid = reservePrice;
         secondBid = reservePrice;
@@ -107,10 +107,10 @@ contract Auction {
     /// @param value the value of the bid as claimed by the sender
     /// @param secret the secret with which the value was hashed to give the hashed value 
     function Bid(uint256 value, uint256 secret) external payable {
-        /// @devThe bidding condition should not fail
+        /// @dev The bidding condition should not fail
         require(endOfBidding <= 0, "Auction Bidding phase not completed");
 
-        /// @devThe amount that is bid is sent as msg.value
+        /// @dev The amount that is bid is sent as msg.value
         uint256 amount = value;
         require(msg.value >= value, "Auction not enough ether");
 
@@ -120,17 +120,17 @@ contract Auction {
 
         require(hashV == hashedBids[msg.sender], "Auction values does not match");
 
-        /// @devStore the amount bid for later withdrawals incase of failure to win auction
+        /// @dev Store the amount bid for later withdrawals incase of failure to win auction
         amountBid[msg.sender] += amount;
 
-        /// @devStoring the balance of each bidder
+        /// @dev Storing the balance of each bidder
         balanceBidders[msg.sender] += msg.sender.balance;
 
         emit BidRecvd(msg.sender, balanceBidders[msg.sender], value, msg.value);
 
-        /// @devIf the bid is higher than the previously processed bids, update accordingly
+        /// @dev If the bid is higher than the previously processed bids, update accordingly
         if (value >= highBid) {
-            /// @devThe bidder is now the highest bidder, the previous highest bid is the second highest bid
+            /// @dev The bidder is now the highest bidder, the previous highest bid is the second highest bid
             highBidder = msg.sender;
             secondBid = highBid;
             highBid = value;
@@ -152,13 +152,13 @@ contract Auction {
         
         uint256 returnamount = amountBid[msg.sender];
 
-        /// @devThe amount owed is reset to 0
+        /// @dev The amount owed is reset to 0
         amountBid[msg.sender] = 0;
 
-        /// @devRequire withdrawal not be allowed if no money is owed
+        /// @dev Require withdrawal not be allowed if no money is owed
         require(returnamount != 0, "Auction: No Amount is due");
 
-        /// @devAllow highest bidder to withdraw excess money
+        /// @dev Allow highest bidder to withdraw excess money
         if(msg.sender == highBidder){
             returnamount = highBid - secondBid;
             emit EndAuction(msg.sender, highBidder, returnamount);
@@ -167,7 +167,7 @@ contract Auction {
                 return returnamount;
             }
         }
-        /// @devAllow losing bidders to withdraw their entire funds
+        /// @dev Allow losing bidders to withdraw their entire funds
         else {
             emit EndAuction(msg.sender, highBidder, returnamount);
             if (returnamount != 0) {
