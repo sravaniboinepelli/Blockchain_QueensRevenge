@@ -1,0 +1,61 @@
+> Test Case 1: Non-Pirates have highest bids
+Bidding ring bids:
+A - 10 wei
+B - 12 wei
+C - 9 wei
+
+Other Vycar auction bids:
+D - 14 wei
+E - 17 wei
+F - 18 wei
+
+Expected Result: F wins auction and pays 17 wei
+Explanation: Pirate B proceeds to the Vycar auction after winning the bidding ring. F has the highest bid in the Vycar auction and pays 17 wei (2nd highest bid).
+
+
+> Test Case 2: No pirates in bidding ring
+Bidding ring bids:
+None
+
+Other Vycar auction bids:
+A - 14 wei
+B - 11 wei
+
+Expected Result: A wins auction and pays 11 wei.
+Explanation: No pirates participated in the bidding ring so A won the Vycar auction and had to pay 11 wei.
+
+> Test Case 3: Large values
+Bidding ring bids:
+A - 10 eth
+B - 13 eth
+
+Other Vycar auction bids:
+C - 1 eth
+D - 2 eth
+E - 18 eth
+
+Expected Result: E wins auction and pays 13 eth
+Explanation: Pirate B proceeds to the Vycar auction after the bidding ring. E has the highest bid in the Vycar auction and pays 13 wei (2nd highest bid by B).
+
+> Test Case 4: Multiple bids of same value
+Bidding ring bids:
+A - 19 wei
+B - 29 wei
+C - 39 wei
+
+Other Vycar auction bids:
+D - 12 wei
+E - 39 wei
+
+Expected Result: E or C can win auction (random) and have to pay 39 wei
+Explanation: Pirate C wins bidding ring to participate in Vycar Auction. Both E and C have the same value highest bids. So, either can win the auction and the 2nd highest value is 39 wei only (as two bids amount to the same).
+
+> Test Case 5: Only 1 pirate
+Bidding ring bids:
+A - 2 wei
+
+Other Vycar auction bids:
+None
+
+Expected Result: A wins auction and has to pay 2 wei
+Explanation: Pirate A wins the bidding ring by default and proceeds to Vycar auction being the sole participant. Since there exists no second highest bid, he has to pay his bid - 2 wei.  
